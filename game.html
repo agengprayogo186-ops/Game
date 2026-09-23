@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Main Bareng 5 Orang</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+    body {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      min-height: 100vh;
+      color: white;
+      padding: 10px;
+      padding-bottom: 100px;
+    }
+    .atas {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(30, 41, 59, 0.9);
+      padding: 12px;
+      border-radius: 12px;
+      border: 2px solid #3b82f6;
+      margin-bottom: 10px;
+    }
+    .nama-ruang { color: #facc15; font-weight: bold; }
+    .jumlah { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+    .papan {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1;
+      background: #1e293b;
+      border-radius: 12px;
+      border: 3px solid #3b82f6;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .kotak { position: absolute; border: 1px solid rgba(255,255,255,0.04); }
+    .tembok { background: #0f172a; border: 2px solid #334155; }
+    .pemain {
+      position: absolute;
+      width: 75%;
+      height: 75%;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      transition: all 0.15s ease;
+      z-index: 10;
+    }
+    .p1 { background: #f97316; border: 3px solid #fdba74; }
+    .p2 { background: #3b82f6; border: 3px solid #93c5fd; }
+    .p3 { background: #a855f7; border: 3px solid #d8b4fe; }
+    .p4 { background: #22c55e; border: 3px solid #86efac; }
+    .p5 { background: #ec4899; border: 3px solid #f9a8d4; }
+    .status { display: flex; gap: 15px; font-size: 14px; }
+    .tanya {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .tanya.ada { display: flex; }
+    .kotak-tanya {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 16px;
+      border: 3px solid #3b82f6;
+      max-width: 420px;
+      width: 100%;
+    }
+    .teks-tanya { font-size: 17px; margin-bottom: 18px; text-align: center; }
+    .pilihan {
+      width: 100%;
+      padding: 13px;
+      margin: 5px 0;
+      border: none;
+      border-radius: 10px;
+      background: #334155;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    .pilihan:hover { background: #3b82f6; }
+    .tombol {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 5px 0;
+    }
+    .gabung { background: #3b82f6; color: white; }
+    .mulai { background: #22c55e; color: white; display: none; }
+    .link {
+      background: #1e293b;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #94a3b8;
+      word-break: break-all;
+      margin-top: 8px;
+      display: none;
+    }
+    .arah {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: grid;
+      grid-template-columns: repeat(3, 55px);
+      grid-template-rows: repeat(3, 55px);
+      gap: 3px;
+      z-index: 50;
+    }
+    .btn-arah {
+      border: none;
+      border-radius: 50%;
+      background: rgba(59,130,246,0.6);
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .kosong { visibility: hidden; }
+  </style>
+</head>
+<body>
+
+  <div class="atas">
+    <div>
+      <div class="nama-ruang" id="ruang">Buat Ruang Baru</div>
+      <div class="jumlah" id="jml">0/5 pemain</div>
+    </div>
+    <div class="status">
+      <div>🔥 Ammo: <span id="peluru">3</span></div>
+      <div>❤️ HP: <span id="nyawa">100</span></div>
+    </div>
+  </div>
+
+  <div class="papan" id="papan"></div>
+
+  <div class="tanya" id="kotak-tanya">
+    <div class="kotak-tanya">
+      <div class="teks-tanya" id="teks-soal"></div>
+      <div id="daftar-pilihan"></div>
+    </div>
+  </div>
+
+  <button class="tombol gabung" id="btn-gabung">🔗 Gabung / Buat Ruang</button>
+  <button class="tombol mulai" id="btn-mulai">🎮 Mulai Permainan</button>
+  <div class="link" id="kotak-link">Bagikan link: <span id="tautan"></span></div>
+
+  <div class="arah">
+    <div class="kosong"></div>
+    <button class="btn-arah" data-arah="atas">↑</button>
+    <div class="kosong"></div>
+    <button class="btn-arah" data-arah="kiri">←</button>
+    <div class="kosong"></div>
+    <button class="btn-arah" data-arah="kanan">→</button>
+    <div class="kosong"></div>
+    <button class="btn-arah" data-arah="bawah">↓</button>
+    <div class="kosong"></div>
+  </div>
+
+<script>
+const UKURAN = 12;
+const SATU = 100 / UKURAN;
+
+// Peta
+const peta = [
+  [1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,1,1,0,1,0,1,1,0,1,1],
+  [1,0,1,0,0,0,0,0,1,0,0,1],
+  [1,0,0,0,1,1,1,0,0,0,1,1],
+  [1,0,1,0,0,0,0,0,1,0,0,1],
+  [1,0,0,0,1,0,1,0,0,0,1,1],
+  [1,0,1,0,0,0,0,0,1,0,0,1],
+  [1,0,0,0,1,1,0,0,0,0,1,1],
+  [1,0,1,0,0,0,0,0,1,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1]
+];
+
+// Soal
+const daftarSoal = [
+  {
+    t: "Yang BUKAN langkah memecahkan masalah?",
+    p: ["Buat rencana", "Langsung kerjakan tanpa rencana", "Pahami masalah dulu", "Cek hasilnya"],
+    b: 1
+  },
+  {
+    t: "Langkah pertama saat ada masalah?",
+    p: ["Pahami masalahnya", "Langsung lari", "Salahkan orang lain", "Tunda nanti"],
+    b: 0
+  },
+  {
+    t: "Apa gunanya rencana?",
+    p: ["Buat ribet", "Jalan solusi jadi jelas", "Tidak ada gunanya", "Buang waktu"],
+    b: 1
+  }
+];
+
+let pemain = {};
+let idSaya = null;
+let nomorSaya = 0;
+let main = false;
+let peluru = 3;
+let nyawa = 100;
+let kodeRuang = null;
+
+// Posisi mulai
+let posisiMulai = [
+  {x:1,y:1}, {x:10,y:1}, {x:1,y:10}, {x:10,y:10}, {x:5,y:5}
+];
+
+// Gambar peta
+function buatPeta() {
+  const papan = document.getElementById('papan');
+  papan.innerHTML = '';
+  for (let y=0; y<UKURAN; y++) {
+    for (let x=0; x<UKURAN; x++) {
+      const kotak = document.createElement('div');
+      kotak.className = 'kotak';
+      kotak.style.left = `${x*SATU}%`;
+      kotak.style.top = `${y*SATU}%`;
+      kotak.style.width = `${SATU}%`;
+      kotak.style.height = `${SATU}%`;
+      if (peta[y][x] === 1) kotak.classList.add('tembok');
+      papan.appendChild(kotak);
+    }
+  }
+}
+
+// Tampilkan semua pemain
+function tampilPemain() {
+  document.querySelectorAll('.pemain').forEach(p=>p.remove());
+  const papan = document.getElementById('papan');
+  Object.entries(pemain).forEach(([id, data]) => {
+    const el = document.createElement('div');
+    el.className = `pemain p${data.nomor}`;
+    el.textContent = ['🍄','🐬','🐙','🦈','🐢'][data.nomor-1];
+    el.style.left = `${data.x*SATU + SATU*0.125}%`;
+    el.style.top = `${data.y*SATU + SATU*0.125}%`;
+    el.style.width = `${SATU*0.75}%`;
+    el.style.height = `${SATU*0.75}%`;
+    papan.appendChild(el);
+  });
+}
+
+// Bisa jalan?
+function bisaJalan(x,y) {
+  if (x<0 || x>=UKURAN || y<0 || y>=UKURAN) return false;
+  return peta[y][x] === 0;
+}
+
+// Gerak
+function gerak(dx, dy) {
+  if (!main || !idSaya) return;
+  const p = pemain[idSaya];
+  const xBaru = p.x + dx;
+  const yBaru = p.y + dy;
+  if (bisaJalan(xBaru, yBaru)) {
+    p.x = xBaru;
+    p.y = yBaru;
+    tampilPemain();
+    if (Math.random() < 0.12) tanyaSoal();
+  }
+}
+
+// Tampil soal
+function tanyaSoal() {
+  if (peluru > 0) { peluru--; updateTampilan(); return; }
+  const soal = daftarSoal[Math.floor(Math.random() * daftarSoal.length)];
+  document.getElementById('teks-soal').textContent = soal.t;
+  const wadah = document.getElementById('daftar-pilihan');
+  wadah.innerHTML = '';
+  soal.p.forEach((teks, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'pilihan';
+    btn.textContent = teks;
+    btn.onclick = () => {
+      if (i === soal.b) {
+        peluru += 2;
+        alert('✅ Benar! +2 Amunisi');
+      } else {
+        nyawa -= 20;
+        alert('❌ Salah! -20 HP');
+      }
+      updateTampilan();
+      document.getElementById('kotak-tanya').classList.remove('ada');
+    };
+    wadah.appendChild(btn);
+  });
+  document.getElementById('kotak-tanya').classList.add('ada');
+}
+
+function updateTampilan() {
+  document.getElementById('peluru').textContent = peluru;
+  document.getElementById('nyawa').textContent = nyawa;
+  document.getElementById('jml').textContent = `${Object.keys(pemain).length}/5 pemain`;
+}
+
+// Gabung
+document.getElementById('btn-gabung').onclick = () => {
+  const cari = new URLSearchParams(window.location.search);
+  kodeRuang = cari.get('ruang') || Math.random().toString(36).substr(2,6).toUpperCase();
+  if (!cari.get('ruang')) {
+    window.history.replaceState({}, '', `?ruang=${kodeRuang}`);
+  }
+  nomorSaya = Object.keys(pemain).length + 1;
+  if (nomorSaya > 5) return alert('Ruang Penuh! Maksimal 5 Orang');
+  
+  idSaya = 'pemain_' + Date.now();
+  pemain[idSaya] = {
+    nomor: nomorSaya,
+    x: posisiMulai[nomorSaya-1].x,
+    y: posisiMulai[nomorSaya-1].y
+  };
+  
+  document.getElementById('ruang').textContent = `Ruang: ${kodeRuang}`;
+  document.getElementById('tautan').textContent = window.location.href;
+  document.getElementById('kotak-link').style.display = 'block';
+  document.getElementById('btn-mulai').style.display = 'block';
+  updateTampilan();
+  tampilPemain();
+  
+  alert(`✅ Kamu Pemain ${nomorSaya}! Bagikan link ke teman.`);
+};
+
+// Mulai
+document.getElementById('btn-mulai').onclick = () => {
+  if (!idSaya) return alert('Gabung Dulu!');
+  main = true;
+  alert('🎮 Mulai! Gunakan tombol arah di bawah.');
+};
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (!main) return;
+  switch(e.key) {
+    case 'ArrowUp': case 'w': gerak(0,-1); break;
+    case 'ArrowDown': case 's': gerak(0,1); break;
+    case 'ArrowLeft': case 'a': gerak(-1,0); break;
+    case 'ArrowRight': case 'd': gerak(1,0); break;
+  }
+});
+
+// Tombol layar
+document.querySelectorAll('.btn-arah').forEach(btn => {
+  btn.onclick = () => {
+    if (!main) return;
+    switch(btn.dataset.arah) {
+      case 'atas': gerak(0,-1); break;
+      case 'bawah': gerak(0,1); break;
+      case 'kiri': gerak(-1,0); break;
+      case 'kanan': gerak(1,0); break;
+    }
+  };
+});
+
+buatPeta();
+</script>
+</body>
+</html>
